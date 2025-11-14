@@ -163,11 +163,11 @@ void convertTemp() { // essa função é a que serve para converter temperaturas
     scanf("%lf", &unidade);
     printf("Digite o caso de conversao: ");
     scanf("%i", &caso);
-    void (*funcPointer[6])(double*) = {convertCF, convertFC, convertCK, convertFK, convertKC, convertKF}; //Vetor de ponteiros para funcoes
-    funcPointer[caso - 1](&unidade);
+    void (*funcPointer[6])(double*) = {convertCF, convertFC, convertCK, convertFK, convertKC, convertKF}; //Vetor de ponteiros que substituiu o switch-case no nosso código e armazena as funções de conversão
+    funcPointer[caso - 1](&unidade); // chamando a função que está no vetor de ponteiros na posição que o usuario solicitou(caso)
 }
 
-void confirmValidNum(char* array, int* base2) {
+void confirmValidNum(char* array, int* base2) { // função que verifica se o número é valido para a base digitada
     for(int i = 0; i < 100; i++) {
         if((*(array + i) >= 48) && (*(array + i) <= 57) && *(array + i) >= *base2 + '0') {
             printf("Numero invalido para base selecionada\n");
@@ -288,19 +288,19 @@ void checkInput(char* input, celula* history) { // essa função é quem irá le
     }
 }
 
-void addToList(celula* cel) {
+void addToList(celula* cel) { // função que inicializa a lista a qual será armazenado os comandos digitados, a fim do usúario saber o que digitou
     celula* a = malloc(sizeof(celula));
     a->ant = cel;
     a->prox = cel->prox;
     cel->prox = a;
 }
 
-void addToHistory(celula* cel, char* input) {
-    if(cel->prox == NULL) {
+void addToHistory(celula* cel, char* input) { // essa função irá adicionar a lista os comandos digitados
+    if(cel->prox == NULL) { // se o dado que aponta para o proximo for nulo, ele irá copiar o comando atual e adicionar na lista
         strcpy(cel->command, input);
         addToList(cel);
     } else {
-        addToHistory(cel->prox, input);
+        addToHistory(cel->prox, input); // se não for nulo, adiciona o dado que aponta para o próximo na lista
     }
 }
 
