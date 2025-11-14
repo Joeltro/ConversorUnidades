@@ -1,25 +1,15 @@
 #pragma once
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <string.h>
+#include <signal.h>
 
-void help();
+typedef struct celula {
+    char command[100];
+    struct celula* ant;
+    struct celula* prox;
+} celula;
 
-void checkInput(char*);
 
 void runtime();
-
-void helpConvertTemp();
-
-void decLogic(char*, int, int, int, int*);
-
-int decConvert(char*, int, int, int, int*);
-
-void reverseString(char*, int);
-
-void findBase(char*, char*, int*);
-
-void hexLogic(char*, int, int, char*, int);
-
-void baseHexConvert(char*, int, int, char*, int);
-
-void convertTemp();
-
-void convertBase();
