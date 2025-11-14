@@ -1,7 +1,7 @@
 /*----------------------------------------------------------------------
 Conversor de unidades 
 Dupla: Alisson e Joeltro
-Data da ultima modificação: 13/10/2025
+Data da ultima modificação: 11/11/2025
 ------------------------------------------------------------------------
 */
 
