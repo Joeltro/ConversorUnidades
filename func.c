@@ -233,7 +233,7 @@ void convertBase() { // função que irá ler os números e a as bases
     if(base == 10) { // logica de conversão para base 10
         baseDecConvert(convertNumber, base2, count, power, &resp);
         baseDecConvert(convertNumberDecimal, base2, count2, -(count2 + 1), &resp2); 
-        printf("Convertido para base 10: %Lf\n", (long double)resp + resp2);
+        printf("Convertido para base 10: %Lf\n", resp + resp2);
     } else {
         if(base2 != 10) { // caso a base desejada para  conversão seja diferente de 10, cai nessa chamada
             baseDecConvert(convertNumber, base2, count, power, &resp);
@@ -241,7 +241,7 @@ void convertBase() { // função que irá ler os números e a as bases
             baseHexConvert(base, 0, hexString, resp);
             baseHexConvertFloat(base, hexStringFloat, &resp2);
             reverseString(hexString, strlen(hexString)); // passa como argumento a hexString que serve para conversão de inteiros em letras
-            //printf("%s");
+            printf("%s\n", hexStringFloat);
         } else {
             baseHexConvert(base, 0, hexString, atoi(convertNumber));
             baseDecConvert(convertNumberDecimal, base2, count2, -(count2 + 1), &resp2);
