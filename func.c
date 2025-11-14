@@ -10,25 +10,7 @@ void viewHistory(celula* cel, int count) {
 }
 
 // função que possui a logica da transformação de bases
-void decLogic(char* array, int base, int count, int power, int* sum) {
-    if(*(array + count) == 'A') {
-        *sum += 10 * pow(base, power);
-    } else if(*(array + count) == 'B') {
-        *sum += 11 * pow(base, power);
-    } else if(*(array + count) == 'C') {
-        *sum += 12 * pow(base, power);
-    } else if(*(array + count) == 'D') {
-        *sum += 13 * pow(base, power);
-    } else if(*(array + count) == 'E') {
-        *sum += 14 * pow(base, power);
-    } else if(*(array + count) == 'F') {
-        *sum += 15 * pow(base, power);
-    } else if(*(array + count) - '0' < 10) {
-        *sum += (*(array + count) - '0') * pow(base, power);
-    }
-}
-
-void decLogicFloat(char* array, int base, int count, int power, long double* sum) {
+void decLogic(char* array, int base, int count, int power, long double* sum) {
     if(*(array + count) == 'A') {
         *sum += 10 * pow(base, power);
     } else if(*(array + count) == 'B') {
@@ -47,7 +29,7 @@ void decLogicFloat(char* array, int base, int count, int power, long double* sum
 }
 
 // função recursiva que irá ficar chamando a função decLogic que contém a logica da transformação de bases
-void baseDecConvert(char* array, int base, int count, int power, int* sum) {
+void baseDecConvert(char* array, int base, int count, int power, long double* sum) {
     if(count == 0) {
         decLogic(array, base, count, power, sum);
     } else {
@@ -56,19 +38,10 @@ void baseDecConvert(char* array, int base, int count, int power, int* sum) {
     }
 }
 
-void baseDecConvertFloat(char* array, int base, int count, int power, long double* sum) {
-    if(count == 0) {
-        decLogicFloat(array, base, count, power, sum);
-    } else {
-        decLogicFloat(array, base, count, power, sum); // -> função que contém a logica da mudança de base
-        baseDecConvertFloat(array, base, count - 1, power - 1, sum); // essa função será retornada enquanto o contador não for 0
-    }
-}
-
 //Imprime a string ao contrario, necessario para mostrar numero de forma correta.
 void reverseString(char* array, int len) {
     if(len == 0) {
-        printf("%c\n", *(array + len));
+        printf("%c.", *(array + len));
     } else {
         printf("%c", *(array + len));
         reverseString(array, len - 1);
@@ -116,6 +89,7 @@ void hexLogic(int base, int count, char* resp, int n) {
         *(resp + count) = 'F';
     }
 }
+
 // função que chama de maneira recursiva a função de cima que contém toda a logica da conversão de base
 void baseHexConvert(int base, int count, char* resp, int n) {
     if(n < base) {
@@ -124,6 +98,38 @@ void baseHexConvert(int base, int count, char* resp, int n) {
         hexLogic(base, count, resp, n); // se não, a função será repetida n vezes até que n seja menor que a base
         baseHexConvert(base, count + 1, resp, n / base);
     } 
+}
+
+void baseHexConvertFloat(int base, char* resp, long double* n) {
+    int count = 0;
+    for(int i = 0; i < 99 && ((*n - (long long)*n < 0.9) || count == 0) && *n != 0; i++) {
+        *n *= base;
+        long double temp = *n;
+        temp += 0.1;
+        if((int)temp == 15) {
+            resp[count] = 'F';
+            count++;
+        } else if((int)temp == 14) {
+            resp[count] = 'E';
+            count++;
+        } else if((int)temp == 13) {
+            resp[count] = 'D';
+            count++;
+        } else if((int)temp == 12) {
+            resp[count] = 'C';
+            count++;
+        } else if((int)temp == 11) {
+            resp[count] = 'B';
+            count++;
+        } else if((int)temp == 10) {
+            resp[count] = 'A';
+            count++;
+        } else {
+            resp[count] = (int)temp + '0';
+            count++;
+        }
+        *n -= (long long)*n;
+    }
 }
 
 void convertCF(double* unidade) {
@@ -163,11 +169,11 @@ void convertTemp() { // essa função é a que serve para converter temperaturas
     scanf("%lf", &unidade);
     printf("Digite o caso de conversao: ");
     scanf("%i", &caso);
-    void (*funcPointer[6])(double*) = {convertCF, convertFC, convertCK, convertFK, convertKC, convertKF}; //Vetor de ponteiros que substituiu o switch-case no nosso código e armazena as funções de conversão
-    funcPointer[caso - 1](&unidade); // chamando a função que está no vetor de ponteiros na posição que o usuario solicitou(caso)
+    void (*funcPointer[6])(double*) = {convertCF, convertFC, convertCK, convertFK, convertKC, convertKF}; //Vetor de ponteiros para funcoes
+    funcPointer[caso - 1](&unidade);
 }
 
-void confirmValidNum(char* array, int* base2) { // função que verifica se o número é valido para a base digitada
+void confirmValidNum(char* array, int* base2) {
     for(int i = 0; i < 100; i++) {
         if((*(array + i) >= 48) && (*(array + i) <= 57) && *(array + i) >= *base2 + '0') {
             printf("Numero invalido para base selecionada\n");
@@ -205,9 +211,10 @@ void convertBase() { // função que irá ler os números e a as bases
     char number[100];
     char convertNumber[100] = "0";
     char convertNumberDecimal[100] = "0";
-    int base = 1, base2 = 1, power = 0, resp = 0;
-    long double resp2 = 0;
+    int base = 1, base2 = 1, power = 0;
+    long double resp = 0, resp2 = 0;
     char hexString[100] = "0";
+    char hexStringFloat[100] = "0";
     //base = Base que deseja convertar para
     //base2 = Base do numero
     while(base2 < 2 || base2 > 16) { // limitador para que seja digitados apenas bases de 2 a 16
@@ -225,18 +232,22 @@ void convertBase() { // função que irá ler os números e a as bases
     }
     if(base == 10) { // logica de conversão para base 10
         baseDecConvert(convertNumber, base2, count, power, &resp);
-        baseDecConvertFloat(convertNumberDecimal, base2, count2, -1, &resp2); 
+        baseDecConvert(convertNumberDecimal, base2, count2, -(count2 + 1), &resp2); 
         printf("Convertido para base 10: %Lf\n", (long double)resp + resp2);
     } else {
         if(base2 != 10) { // caso a base desejada para  conversão seja diferente de 10, cai nessa chamada
             baseDecConvert(convertNumber, base2, count, power, &resp);
-            baseDecConvertFloat(convertNumberDecimal, base2, count2, power, &resp2); 
+            baseDecConvert(convertNumberDecimal, base2, count2, -(count2 + 1), &resp2); 
             baseHexConvert(base, 0, hexString, resp);
+            baseHexConvertFloat(base, hexStringFloat, &resp2);
             reverseString(hexString, strlen(hexString)); // passa como argumento a hexString que serve para conversão de inteiros em letras
+            //printf("%s");
         } else {
             baseHexConvert(base, 0, hexString, atoi(convertNumber));
-            baseHexConvert(base, 0, hexString, atoi(convertNumberDecimal));
+            baseDecConvert(convertNumberDecimal, base2, count2, -(count2 + 1), &resp2);
+            baseHexConvertFloat(base, hexStringFloat, &resp2);
             reverseString(hexString, strlen(hexString));
+            printf("%s\n", hexStringFloat);
         }
     }
 }
@@ -288,19 +299,19 @@ void checkInput(char* input, celula* history) { // essa função é quem irá le
     }
 }
 
-void addToList(celula* cel) { // função que inicializa a lista a qual será armazenado os comandos digitados, a fim do usúario saber o que digitou
+void addToList(celula* cel) {
     celula* a = malloc(sizeof(celula));
     a->ant = cel;
     a->prox = cel->prox;
     cel->prox = a;
 }
 
-void addToHistory(celula* cel, char* input) { // essa função irá adicionar a lista os comandos digitados
-    if(cel->prox == NULL) { // se o dado que aponta para o proximo for nulo, ele irá copiar o comando atual e adicionar na lista
+void addToHistory(celula* cel, char* input) {
+    if(cel->prox == NULL) {
         strcpy(cel->command, input);
         addToList(cel);
     } else {
-        addToHistory(cel->prox, input); // se não for nulo, adiciona o dado que aponta para o próximo na lista
+        addToHistory(cel->prox, input);
     }
 }
 
