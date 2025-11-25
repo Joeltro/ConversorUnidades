@@ -211,7 +211,7 @@ void convertBase() { // função que irá ler os números e a as bases
     char number[100];
     char convertNumber[100] = "0";
     char convertNumberDecimal[100] = "0";
-    int base = 1, base2 = 1, power = 0;
+    int base = 1, base2 = 1, power = 0, negative = 0;
     long double resp = 0, resp2 = 0;
     char hexString[100] = "0";
     char hexStringFloat[100] = "0";
@@ -224,6 +224,13 @@ void convertBase() { // função que irá ler os números e a as bases
         confirmValidNum(convertNumber, &base2);
         confirmValidNum(convertNumberDecimal, &base2);
     }
+    if(convertNumber[0] == '-') {
+        negative = 1;
+        for(int i = 0; i < 99; i++) {
+            convertNumber[i] = convertNumber[i+1];
+        }
+        convertNumber[99] = 0;
+    }
     int count = strlen(convertNumber) - 1;
     int count2 = strlen(convertNumberDecimal) - 1;
     while(base < 2 || base > 16) {
@@ -232,20 +239,30 @@ void convertBase() { // função que irá ler os números e a as bases
     }
     if(base == 10) { // logica de conversão para base 10
         baseDecConvert(convertNumber, base2, count, power, &resp);
-        baseDecConvert(convertNumberDecimal, base2, count2, -(count2 + 1), &resp2); 
-        printf("Convertido para base 10: %Lf\n", resp + resp2);
+        baseDecConvert(convertNumberDecimal, base2, count2, -(count2 + 1), &resp2);
+        if(!negative) {
+            printf("Convertido para base 10: %Lf\n", resp + resp2);
+        } else {
+            printf("Convertido para base 10: -%Lf\n", resp + resp2);
+        }
     } else {
         if(base2 != 10) { // caso a base desejada para  conversão seja diferente de 10, cai nessa chamada
             baseDecConvert(convertNumber, base2, count, power, &resp);
             baseDecConvert(convertNumberDecimal, base2, count2, -(count2 + 1), &resp2); 
             baseHexConvert(base, 0, hexString, resp);
             baseHexConvertFloat(base, hexStringFloat, &resp2);
+            if(negative) {
+                printf("-");
+            }
             reverseString(hexString, strlen(hexString)); // passa como argumento a hexString que serve para conversão de inteiros em letras
             printf("%s\n", hexStringFloat);
         } else {
             baseHexConvert(base, 0, hexString, atoi(convertNumber));
             baseDecConvert(convertNumberDecimal, base2, count2, -(count2 + 1), &resp2);
             baseHexConvertFloat(base, hexStringFloat, &resp2);
+            if(negative) {
+                printf("-");
+            }
             reverseString(hexString, strlen(hexString));
             printf("%s\n", hexStringFloat);
         }
