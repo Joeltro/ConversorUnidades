@@ -1,8 +1,24 @@
 #include "func.h"
 
+long double exponencial(int a, int b) {
+    if(b == 0) {
+        return 1;
+    } else if(b == 1) {
+        return a;
+    } else if(b == -1) {
+        return 1/a;
+    } else if(b > 0) {
+        return a * exponencial(a, b - 1);
+    } else {
+        return 1/a * exponencial(a, b + 1);
+    }
+}
+
 void viewHistory(celula* cel, int count) {
     if(cel->prox == NULL) {
-        printf("%s\n", cel->command);
+        printf("Lista vazia\n");
+    } else if((cel->prox)->prox == NULL) {
+        printf("%i - %s\n", count, cel->command);
     } else {
         printf("%i - %s\n", count, cel->command);
         viewHistory(cel->prox, count + 1);
@@ -12,19 +28,19 @@ void viewHistory(celula* cel, int count) {
 // função que possui a logica da transformação de bases
 void decLogic(char* array, int base, int count, int power, long double* sum) {
     if(*(array + count) == 'A') {
-        *sum += 10 * pow(base, power);
+        *sum += 10 * exponencial(base, power);
     } else if(*(array + count) == 'B') {
-        *sum += 11 * pow(base, power);
+        *sum += 11 * exponencial(base, power);
     } else if(*(array + count) == 'C') {
-        *sum += 12 * pow(base, power);
+        *sum += 12 * exponencial(base, power);
     } else if(*(array + count) == 'D') {
-        *sum += 13 * pow(base, power);
+        *sum += 13 * exponencial(base, power);
     } else if(*(array + count) == 'E') {
-        *sum += 14 * pow(base, power);
+        *sum += 14 * exponencial(base, power);
     } else if(*(array + count) == 'F') {
-        *sum += 15 * pow(base, power);
+        *sum += 15 * exponencial(base, power);
     } else if(*(array + count) - '0' < 10) {
-        *sum += (*(array + count) - '0') * pow(base, power);
+        *sum += (*(array + count) - '0') * exponencial(base, power);
     }
 }
 
@@ -47,24 +63,43 @@ void reverseString(char* array, int len) {
         reverseString(array, len - 1);
     }
 }
-
-void findBase(char* array, char* array2, char* array3, int* base) { // função que acha a base do numero -> numero(base)
-    int limit = 0;
+void findBase(char* array, char* array2, char* array3, char* base, char* base2) { // função que acha a base do numero -> numero(base)
     for(int i = 0; i < 100; i++) {
         if(array[i] == '.') {
             strncpy(array2, array, i);
-            limit = i + 1;
             for(int j = i; j < 100; j++) {
                 if(array[j] == '(') {
-                    strncpy(array3, (array + limit), j - limit);
-                    *base = atoi(array + j + 1); // utiliza-se o atoi para ler a parte inteira da string após ignorar o parentesis
+                    strncpy(array3, (array + i + 1), j - (i + 1));
+                    for(int k = j; k < 100; k++) {
+                        if(array[k] == ')') {
+                            strncpy(base, (array + j + 1), k - (j + 1));
+                            for(int l = k + 1; l < 100; l++) {
+                                if((array[l] >= 48 && array[l] <= 57) || (array[l] >= 65 && array[l] <= 90) || (array[l] >= 97 && array[l] <= 122)) {
+                                    strcpy(base2, (array + l));
+                                    break;
+                                }
+                            }
+                            break;
+                        }
+                    }
                     break;        
                 }
             }
             break;
         } else if(array[i] == '(') { // esse algoritmo é utilizado para ignorar o parentesis e e ler apenas o número que está dentro dele
             strncpy(array2, array, i);
-            *base = atoi(array + i + 1); // utiliza-se o atoi para ler a parte inteira da string após ignorar o parentesis
+            for(int j = i; j < 100; j++) {
+                if(array[j] == ')') {
+                    strncpy(base, (array + i + 1), j - (i + 1)); // utiliza-se o atoi para ler a parte inteira da string após ignorar o parentesis
+                    for(int k = j + 1; k < 100; k++) {
+                        if((array[k] >= 48 && array[k] <= 57) || (array[k] >= 65 && array[k] <= 90) || (array[k] >= 97 && array[k] <= 122)) {
+                            strcpy(base2, (array + k));
+                            break;
+                        }
+                    }
+                    break;
+                } 
+            }
             break;
         }
     }
@@ -72,7 +107,7 @@ void findBase(char* array, char* array2, char* array3, int* base) { // função 
 
 // essa função contém a logica de transformar os números maiores que 9 em letras
 // além de conter a logica de transformação de bases para hexadecimal
-void hexLogic(int base, int count, char* resp, int n) {
+void hexLogic(int base, int count, char* resp, long long n) {
     if(n % base < 10) {
         *(resp + count) = (n % base + '0');
     } else if(n % base == 10) {
@@ -91,7 +126,7 @@ void hexLogic(int base, int count, char* resp, int n) {
 }
 
 // função que chama de maneira recursiva a função de cima que contém toda a logica da conversão de base
-void baseHexConvert(int base, int count, char* resp, int n) {
+void baseHexConvert(int base, int count, char* resp, long long n) {
     if(n < base) {
         hexLogic(base, count, resp, n); // se o numero for menor que base, apenas retorna a função
     } else {
@@ -100,12 +135,12 @@ void baseHexConvert(int base, int count, char* resp, int n) {
     } 
 }
 
-void baseHexConvertFloat(int base, char* resp, long double* n) {
+void baseHexConvertFloat(int base, char* resp, long double n) {
     int count = 0;
-    for(int i = 0; i < 99 && ((*n - (long long)*n < 0.9) || count == 0) && *n != 0; i++) {
-        *n *= base;
-        long double temp = *n;
-        temp += 0.1;
+    for(int i = 0; i < 99 && ((n - (long long)n < 0.999) || count == 0) && n != 0; i++) {
+        n *= base;
+        long double temp = n;
+        temp += 0.001;
         if((int)temp == 15) {
             resp[count] = 'F';
             count++;
@@ -128,190 +163,293 @@ void baseHexConvertFloat(int base, char* resp, long double* n) {
             resp[count] = (int)temp + '0';
             count++;
         }
-        *n -= (long long)*n;
+        n -= (long long)n;
     }
 }
 
-void convertCF(double* unidade) {
-        *unidade = (9 * *(unidade))/5 + 32; // converter Celsius para Fahrenheit
-        printf("Temperatura convertida: %.2lf Fahreinheit\n", *unidade);
-}
 
-void convertFC(double* unidade) {
-        *unidade = (*(unidade - 32) * 5)/9; // converter Fahrenheit para Celsius
-        printf("Temperatura convertida: %.2lf Celcius\n", *unidade);
-}
-
-void convertCK(double* unidade) {
-        *unidade += 273; // converter Celsius para Kelvin
-        printf("Temperatura convertida: %.2lf Kelvin\n", *unidade);
-}
-
-void convertFK(double* unidade) {
-        *unidade = (*(unidade - 32) * 5)/9 + 273;
-        printf("Temperatura convertida: %.2lf Kelvin\n", *unidade); // converter Fahrenheit para Kelvin
-}
-
-void convertKC(double* unidade) {
-        *unidade -= 273; // converter Kelvin para Celsius
-        printf("Temperatura convertida: %.2lf Celcius\n", *unidade);
-}
-
-void convertKF(double* unidade) {
-        *unidade = 9 * *(unidade - 273)/5 + 32 ; // converter Kelvin para Fahrenheit
-        printf("Temperatura convertida: %.2lf Fahreinheit\n", *unidade);
-}
-
-void convertTemp() { // essa função é a que serve para converter temperaturas
-    printf("Digite o numero que quer converter: \n");
-    int caso;
-    double unidade;
-    scanf("%lf", &unidade);
-    printf("Digite o caso de conversao: ");
-    scanf("%i", &caso);
-    void (*funcPointer[6])(double*) = {convertCF, convertFC, convertCK, convertFK, convertKC, convertKF}; //Vetor de ponteiros para funcoes
-    funcPointer[caso - 1](&unidade);
-}
-
-void confirmValidNum(char* array, int* base2) {
-    for(int i = 0; i < 100; i++) {
-        if((*(array + i) >= 48) && (*(array + i) <= 57) && *(array + i) >= *base2 + '0') {
+int confirmValidNum(char* array, long double num) {
+    for(int i = 0; i < 100 && array[i] != 0; i++) {
+        if((*(array + i) >= 48) && (*(array + i) <= 57) && *(array + i) - '0' >= num) {
             printf("Numero invalido para base selecionada\n");
-            *base2 = 1;
-            break;
-        } else if((*base2 == 15) && array[i] == 'F') {
+            return 0;
+        } else if((num == 15) && array[i] >= 70) {
             printf("Numero invalido para base selecionada\n");
-            *base2 = 1;
-            break;
-        } else if((*base2 == 14) && array[i] == 'E') {
+            return 0;
+        } else if((num == 14) && array[i] >= 69) {
             printf("Numero invalido para base selecionada\n");
-            *base2 = 1;
-            break;
-        } else if((*base2 == 13) && array[i] == 'D') {
+            return 0;
+        } else if((num == 13) && array[i] >= 68) {
             printf("Numero invalido para base selecionada\n");
-            *base2 = 1;
-            break;
-        } else if((*base2 == 12) && array[i] == 'C') {
+            return 0;
+        } else if((num == 12) && array[i] >= 67) {
             printf("Numero invalido para base selecionada\n");
-            *base2 = 1;
-            break;
-        } else if((*base2 == 11) && array[i] == 'B') {
+            return 0;
+        } else if((num == 11) && array[i] >= 66) {
             printf("Numero invalido para base selecionada\n");
-            *base2 = 1;
-            break;
-        } else if((*base2 == 10) && array[i] == 'A') {
+            return 0;
+        } else if((num == 10) && array[i] >= 65) {
             printf("Numero invalido para base selecionada\n");
-            *base2 = 1;
-            break;
+            return 0;
         }
     }
+    return 1;
 }
 
-void convertBase() { // função que irá ler os números e a as bases
-    char number[100];
-    char convertNumber[100] = "0";
-    char convertNumberDecimal[100] = "0";
-    int base = 1, base2 = 1, power = 0, negative = 0;
+void addToConvertHistory(char* dest, char* src1, int base2) {
+    
+}
+
+typedef struct weight {
+    char* name;
+    long double weight;
+} peso;
+
+void convertBase(char* convertNumber, char* convertNumberDecimal, int base, int base2) { // função que irá ler os números e a as bases
+    int power = 0, negative = 0; 
     long double resp = 0, resp2 = 0;
     char hexString[100] = "0";
     char hexStringFloat[100] = "0";
-    //base = Base que deseja convertar para
-    //base2 = Base do numero
-    while(base2 < 2 || base2 > 16) { // limitador para que seja digitados apenas bases de 2 a 16
-        printf("Digite o numero que quer converter: ");
-        scanf("%99s", number);
-        findBase(number, convertNumber, convertNumberDecimal, &base2);   // função que exclui o parentesis para ler apenas o inteiro da base
-        confirmValidNum(convertNumber, &base2);
-        confirmValidNum(convertNumberDecimal, &base2);
-    }
     if(convertNumber[0] == '-') {
         negative = 1;
         for(int i = 0; i < 99; i++) {
-            convertNumber[i] = convertNumber[i+1];
+            convertNumber[i] = convertNumber[i + 1];
         }
         convertNumber[99] = 0;
     }
     int count = strlen(convertNumber) - 1;
     int count2 = strlen(convertNumberDecimal) - 1;
-    while(base < 2 || base > 16) {
-        printf("Digite a base que quer converter para: ");
-        scanf("%i", &base);
-    }
-    if(base == 10) { // logica de conversão para base 10
-        baseDecConvert(convertNumber, base2, count, power, &resp);
-        baseDecConvert(convertNumberDecimal, base2, count2, -(count2 + 1), &resp2);
+    if(base2 == 10) { // logica de conversão para base 10
+        baseDecConvert(convertNumber, base, count, power, &resp);
+        baseDecConvert(convertNumberDecimal, base, count2, -(count2 + 1), &resp2);
         if(!negative) {
             printf("Convertido para base 10: %Lf\n", resp + resp2);
         } else {
             printf("Convertido para base 10: -%Lf\n", resp + resp2);
         }
-    } else {
-        if(base2 != 10) { // caso a base desejada para  conversão seja diferente de 10, cai nessa chamada
-            baseDecConvert(convertNumber, base2, count, power, &resp);
-            baseDecConvert(convertNumberDecimal, base2, count2, -(count2 + 1), &resp2); 
-            baseHexConvert(base, 0, hexString, resp);
-            baseHexConvertFloat(base, hexStringFloat, &resp2);
-            if(negative) {
-                printf("-");
-            }
+    } else { // caso a base desejada para  conversão seja diferente de 10, cai nessa chamada
+        baseDecConvert(convertNumber, base, count, power, &resp);
+        baseDecConvert(convertNumberDecimal, base, count2, -(count2 + 1), &resp2); 
+        baseHexConvert(base2, 0, hexString, resp);
+        baseHexConvertFloat(base2, hexStringFloat, resp2);
+        if(negative) {
+            printf("Convertido para base %i: -", base2);
             reverseString(hexString, strlen(hexString)); // passa como argumento a hexString que serve para conversão de inteiros em letras
             printf("%s\n", hexStringFloat);
         } else {
-            baseHexConvert(base, 0, hexString, atoi(convertNumber));
-            baseDecConvert(convertNumberDecimal, base2, count2, -(count2 + 1), &resp2);
-            baseHexConvertFloat(base, hexStringFloat, &resp2);
-            if(negative) {
-                printf("-");
-            }
-            reverseString(hexString, strlen(hexString));
+            printf("Convertido para base %i: ", base2);
+            reverseString(hexString, strlen(hexString)); // passa como argumento a hexString que serve para conversão de inteiros em letras
             printf("%s\n", hexStringFloat);
         }
     }
 }
+
+long double convertUnits(long double unidade,  char* base, char* base2, peso* values) {
+    long double n = 0, n2 = -1;
+    for(int i = 0; i < 7; i++) {
+        if(!strcmp(base, (values + i)->name)) {
+            n = (values + i)->weight;
+        } else if(!strcmp(base2, (values + i)->name)) {
+            n2 = (values + i)->weight;
+        }
+    }
+    return unidade * (n/n2);
+}
+
+long double convertCF(long double unidade) {
+    return unidade = (9 * (unidade))/5 + 32; // converter Celsius para Fahrenheit
+}
+
+long double convertFC(long double unidade) {
+    return unidade = ((unidade - 32) * 5)/9; // converter Fahrenheit para Celsius
+}
+
+long double convertCK(long double unidade) {
+    return unidade += 273; // converter Celsius para Kelvin
+}
+
+long double convertFK(long double unidade) {
+    return unidade = ((unidade - 32) * 5)/9 + 273;
+}
+
+long double convertKC(long double unidade) {
+    return unidade -= 273; // converter Kelvin para Celsius
+}
+
+long double convertKF(long double unidade) {
+    return unidade = 9 * (unidade - 273)/5 + 32 ; // converter Kelvin para Fahrenheit
+}
+
+long double convertTemp(long double unidade, char* base, char* base2, long double (*funcPointer[6])(long double)) {
+    if(!strcmp(base, "C")) {
+        if(!strcmp(base2, "F")) {
+            return funcPointer[0](unidade);
+        } else if(!strcmp(base2, "K")) {
+            return funcPointer[1](unidade);
+        }
+    } else if(!strcmp(base, "F")) {
+        if(!strcmp(base2, "C")) {
+            return funcPointer[2](unidade);
+        } else if(!strcmp(base2, "K")) {
+            return funcPointer[3](unidade);
+        }
+    } else if(!strcmp(base, "K")) {
+        if(!strcmp(base2, "C")) {
+            return funcPointer[4](unidade);
+        } else if(!strcmp(base2, "K")) {
+            return funcPointer[5](unidade);
+        }
+    }
+}
+
+void convert(celula* convertHisory) {
+    char number[100];
+    char convertNumber[100] = "0";
+    char convertNumberDecimal[100] = "0";
+    char base[5] = "0", base2[5] = "0";
+    int validBase = 0, validBaseDecimal = 0, negative = 0;
+    long double resp = 0, resp2 = 0, sum;
+    peso valuesC[] = {
+        {"mm", 0.001},
+        {"cm", 0.01},
+        {"m", 1},
+        {"km", 1000},
+        {"in", 0.0254},
+        {"ft", 0.3048},
+        {"mi", 1609.34},
+    };
+    peso valuesA[] = {
+        {"m^2", 1},
+        {"cm^2", 0.0001},
+        {"ac", 4045.8564},
+        {"ha", 10000},
+        {"ft^2", 0.0929},
+        {"in^2", 0.0006451}
+    };
+    peso valuesV[] = {
+        {"L", 1},
+        {"mL", 0.001},
+        {"m^3", 1000},
+        {"in^3", 0.01638},
+        {"ft^3", 28.3168}
+    };
+    peso valuesM[] = {
+        {"g", 1},
+        {"kg", 1000},
+        {"t", 1000000},
+        {"lb", 453.6},
+        {"oz", 28.35}
+    };
+    long double (*funcPointer[6])(long double) = {convertCF, convertCK, convertFC, convertFK, convertKC, convertKF};
+    while(validBase == 0 || validBaseDecimal == 0) {
+        long double num = 0, num2 = 0; 
+        printf("Digite o numero que quer converter: ");
+        scanf(" %99[^\n]", number);
+        findBase(number, convertNumber, convertNumberDecimal, base, base2);
+        if(convertNumber[0] == '-') {
+            negative = 1;
+            for(int i = 0; i < 99; i++) {
+                convertNumber[i] = convertNumber[i + 1];
+            }
+            convertNumber[99] = 0;
+        }
+        if(base[0] >= 48 && base[0] <= 57) {
+            baseDecConvert(base, 10, strlen(base) - 1, 0, &num);
+            baseDecConvert(base2, 10, strlen(base2) - 1, 0, &num2);
+            validBase = confirmValidNum(convertNumber, num);
+            if(validBase == 1) {
+                validBaseDecimal = confirmValidNum(convertNumberDecimal, num);
+            }
+            if(num2 < 2 || num2 > 16) {
+                printf("Base de conversao invalida\n");
+                validBase = 0;
+                validBaseDecimal = 0;
+            }
+            if(validBase == 1 && validBaseDecimal == 1) {
+                convertBase(convertNumber, convertNumberDecimal, num, num2);
+            }
+        } else if((base[0] >= 65 && base[0] <= 90) || (base[0] >= 97 && base[0] <= 122)) {
+            baseDecConvert(convertNumber, 10, strlen(convertNumber) - 1, 0, &resp);
+            baseDecConvert(convertNumberDecimal, 10, strlen(convertNumberDecimal) - 1, -(strlen(convertNumberDecimal)), &resp2);
+            if(negative) {
+                resp *= -1;
+                resp2 *= -1;
+            }
+            sum = resp + resp2;
+            long double final = convertUnits(sum, base, base2, valuesC);
+            if((sum != 0 && final == 0) || (sum > 0 && final < 0) || (sum < 0 && final > 0)) {
+                final = convertUnits(sum, base, base2, valuesA);
+                if((sum != 0 && final == 0) || (sum > 0 && final < 0) || (sum < 0 && final > 0)) {
+                    final = convertUnits(sum, base, base2, valuesV);
+                    if((sum != 0 && final == 0) || (sum > 0 && final < 0) || (sum < 0 && final > 0)) {
+                        final = convertUnits(sum, base, base2, valuesM);
+                        if((sum != 0 && final == 0) || (sum > 0 && final < 0) || (sum < 0 && final > 0)) {
+                            final = convertTemp(sum, base, base2, funcPointer);
+                            if((sum > 0 && final < 0) || (sum < 0 && final > 0)) {
+                                printf("Base invalida\n");
+                            } else {
+                                printf("Convertido: %Lf %s\n", final, base2);
+                                validBase = 1;
+                                validBaseDecimal = 1;
+                            }
+                        }
+                    } else {
+                        printf("Convertido: %Lf %s", final, base2);
+                        validBase = 1;
+                        validBaseDecimal = 1;
+                    }
+                } else {
+                    printf("Convertido: %Lf %s\n", final, base2);
+                    validBase = 1;
+                    validBaseDecimal = 1;
+                }
+            } else {
+                printf("Convertido: %Lf %s\n", final, base2);
+                validBase = 1;
+                validBaseDecimal = 1;
+            }
+        }
+    }
+}
+
 // função que irá mostrar os comandos do programa até o momento, para nortear o usúario 
 void help() {
     printf("Commandos:\n");
-    printf("convert temp -- Realiza conversao de unidades de temperatura\n");
-    printf("convert base -- Realiza conversao de bases numericas\n");
+    printf("convert temp -- Realiza conversao de unidades e bases\n");
     //printf("op -- Realiza operacoes entre unidades diferentes\n");
     printf("q -- Sai do programa\n");
     printf("Digite 'help -commando-' para ver parametros avancados\n");
 }
-// função que irá mostrar os casos de conversão de temperatura, presentes no switch case
-void helpConvertTemp() {
-    printf("Formato: Digitar Quantidade a ser convertida, em seguida digitar o caso de conversao\n");
-    printf("Caso 1: Conversao de Celsius para Fahrenheit\n");
-    printf("Caso 2: Conversao de Fahrenheit para Celsius\n");
-    printf("Caso 3: Conversao de Celsius para Kelvin\n");
-    printf("Caso 4: Conversao de Fahrenheit para Kelvin\n");
-    printf("Caso 5: Conversao de Kelvin para Celsius\n");
-    printf("Caso 6: Conversao de Kelvin para Fahrenheit\n");
-}
+
 // função que irá fornecer informações sobre como o número para conversão de bases deve ser digitado, e a maneira de selecionar a base de conversão
-void helpConvertBase() {
-    printf("Formato: \n1. Digitar Quantidade a ser convertida -- X(Y), onde X eh o numero e Y sua base\n");
-    printf("2. Digitar a base que desejar converter o numero para (2 - 16)\n");
+void helpConvert() {
+    printf("Formato:\n.>Digitar -- 'X(Y) - Z' \nonde X eh o numero, Y a base de X e Z a base que deseja converter para\n");
+    printf("=== BASES VALIDAS ===\n");
+    printf("> Numeros de 2 ate 16\n");
+    printf("> Comprimentos: milimetros = mm, centimetros = cm, metros = m, kilometros = km, polegadas = in, pes = ft, milhas = mi\n");
+    printf("> Area: centimetros quadrados = cm^2, metros quadrados = m^2, acres = ac, hectares = ha, pes quadrados = ft^2, polegadas quadradas = in^2\n");
+    printf("> Volume: litros = L, mililitros = mL, metros cubicos = m^3, polegadas cubicas = in^3, pes cubicos = ft^3");
+    printf("> Massa: gramas = g, kilogramas = kg, tonelada = t, libra = lb, onca = oz");
+    printf("> Temperatura: Celcius = C, Fahreinheit = F, Kelvin = K\n");
 }
 
-void checkInput(char* input, celula* history) { // essa função é quem irá ler os comandos digitados pelo usuario, a fim de fornecer informações sobre o programa
-    if(strcmp(input, "help") == 0) { // se o input for help, ele mostra a lista de comandos convert
+void checkInput(char* input, celula* commandHistory, celula* convertHistory) { // essa função é quem irá ler os comandos digitados pelo usuario, a fim de fornecer informações sobre o programa
+    if(!strcmp(input, "help")) { // se o input for help, ele mostra a lista de comandos convert
         help();
-    } else if(strcmp(input, "convert temp") == 0) { // caso seja convert temp, cai na situação de leitura de temperatura e o caso que quer transformar
-        convertTemp();
-    } else if(strcmp(input, "convert base") == 0) { // caso seja convert base, cai na situação de leitura de numero(base) e a base a qual deseja converter
-        convertBase();
-    } else if(strcmp(input, "op") == 0) {
+    } else if(!strcmp(input, "convert")) { // caso seja convert base, cai na situação de leitura de numero(base) e a base a qual deseja converter
+        convert(convertHistory);
+    } else if(!strcmp(input, "op")) {
         //op();
-    } else if(strcmp(input, "help convert temp") == 0) { // caso seja help convert temp, mostra a lista de comandos de conversão de temperaturas
-        helpConvertTemp();
-    } else if(strcmp(input, "help convert base") == 0) { // caso seja help convert base, mostra a maneira como deve-se usar a conversão de bases
-        helpConvertBase();
-    } else if(strcmp(input, "help op") == 0) {
+    } else if(!strcmp(input, "help convert")) { // caso seja help convert base, mostra a maneira como deve-se usar a conversão de bases
+        helpConvert();
+    } else if(!strcmp(input, "help op")) {
         //helpOp();
-    } else if(strcmp(input, "hist") == 0) {
+    } else if(!strcmp(input, "hist")) {
         printf("\n=== Historico de commandos ===\n");
-        viewHistory(history, 1);
-    } else if(strcmp(input, "q") != 0) {
+        viewHistory(commandHistory, 1);
+        printf("\n=== Historico de conversoes ===\n");
+        viewHistory(convertHistory, 1);
+    } else if(strcmp(input, "q")) {
         printf("Comando nao reconhecido\n"); // caso seja qualquer outro comando diferente de q e dos comandos acima, cai no caso de comando não reconhecido
     }
 }
@@ -335,9 +473,12 @@ void addToHistory(celula* cel, char* input) {
 void runtime() { // função "principal" da func.c, o qual o programa irá começar e irá rodar até receber q como input
     int start = 0;
     char input[20] = "0";
-    celula* history = malloc(sizeof(celula));
-    history->ant = NULL;
-    history->prox = NULL;
+    celula* commandHistory = malloc(sizeof(celula));
+    commandHistory->ant = NULL;
+    commandHistory->prox = NULL;
+    celula* convertHistory = malloc(sizeof(celula));
+    convertHistory->ant = NULL;
+    convertHistory->prox = NULL;
     if(start == 0) {
         printf("=== Conversor de unidades ===\n");
         printf("Digite 'help' para ver commandos\n");
@@ -345,7 +486,7 @@ void runtime() { // função "principal" da func.c, o qual o programa irá come�
     }
     while(strcmp(input, "q") != 0) { // logica de rodar até o programa receber q como input
         scanf(" %[^\n]s", input);
-        addToHistory(history, input);
-        checkInput(input, history);
+        addToHistory(commandHistory, input);
+        checkInput(input, commandHistory, convertHistory);
     }
 }
