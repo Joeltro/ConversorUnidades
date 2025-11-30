@@ -1,6 +1,6 @@
 #include "func.h"
 
-long double exponencial(int a, int b) {
+long double exponencial(long double a, int b) {
     if(b == 0) {
         return 1;
     } else if(b == 1) {
