@@ -13,6 +13,7 @@ long double exponencial(long double a, int b) { // função recursiva que calcul
         return 1/a * exponencial(a, b + 1); // se não, chama o inverso do número passando ele multiplicando pelo expoente até o expoente chegar a 0
     }
 }
+
 FILE* initializeFiles(const char* nome, const char* modo) { // função que irá inicializar os arquivos
     FILE* f = fopen(nome, modo);
     
@@ -65,14 +66,21 @@ void baseDecConvert(char* array, int base, int count, int power, long double* su
 }
 
 //Imprime a string ao contrario, necessario para mostrar numero de forma correta.
-void reverseString(char* array, int len) {
-    if(len == 0) {
-        printf("%c.", *(array + len));
+void reverseString(char* array, int start, int end) {
+    if(end == start) {
+        return;
+    } else if(end - start == 1) {
+        array[start] ^= array[end];
+        array[end] ^= array[start];
+        array[start] ^= array[end];
     } else {
-        printf("%c", *(array + len));
-        reverseString(array, len - 1);
+        array[start] ^= array[end];
+        array[end] ^= array[start];
+        array[start] ^= array[end];
+        reverseString(array, start + 1, end - 1);
     }
 }
+
 void findBase(char* array, char* array2, char* array3, char* base, char* base2) { // função que acha a base do numero -> numero(base)
     for(int i = 0; i < 100; i++) {
         if(array[i] == '.') {
@@ -206,20 +214,17 @@ int confirmValidNum(char* array, long double num) { // verificação se o númer
     return 1;
 }
 
-void addToConvertHistory(char* dest, char* src1, int base2) {
-    
-}
-
 typedef struct weight { // struct para conversão de unidades
     char* name;
     long double weight;
 } peso;
 
-void convertBase(char* convertNumber, char* convertNumberDecimal, int base, int base2) { // função que irá ler os números e a as bases
+char* convertBase(char* number, char* convertNumber, char* convertNumberDecimal, int base, int base2) { // função que irá ler os números e a as bases
     int power = 0, negative = 0; 
     long double resp = 0, resp2 = 0;
     char hexString[100] = "0";
     char hexStringFloat[100] = "0";
+    char* returnString = malloc(303 * sizeof(char));
     if(convertNumber[0] == '-') {
         negative = 1;
         for(int i = 0; i < 99; i++) {
@@ -232,10 +237,17 @@ void convertBase(char* convertNumber, char* convertNumberDecimal, int base, int 
     if(base2 == 10) { // logica de conversão para base 10
         baseDecConvert(convertNumber, base, count, power, &resp);
         baseDecConvert(convertNumberDecimal, base, count2, -(count2 + 1), &resp2);
-        if(!negative) {
-            printf("Convertido para base 10: %Lf\n", resp + resp2);
-        } else {
+        baseHexConvert(10, 0, hexString, resp);
+        baseHexConvertFloat(base2, hexStringFloat, resp2);
+        reverseString(hexString, 0, strlen(hexString) - 1);
+        if(negative) {
             printf("Convertido para base 10: -%Lf\n", resp + resp2);
+            sprintf(returnString, "%s = -%s.%s", number, hexString, hexStringFloat);
+            return returnString;
+        } else {
+            printf("Convertido para base 10: %Lf\n", resp + resp2);
+            sprintf(returnString, "%s = %s.%s", number, hexString, hexStringFloat);
+            return returnString;
         }
     } else { // caso a base desejada para  conversão seja diferente de 10, cai nessa chamada
         baseDecConvert(convertNumber, base, count, power, &resp);
@@ -243,13 +255,17 @@ void convertBase(char* convertNumber, char* convertNumberDecimal, int base, int 
         baseHexConvert(base2, 0, hexString, resp);
         baseHexConvertFloat(base2, hexStringFloat, resp2);
         if(negative) {
-            printf("Convertido para base %i: -", base2);
-            reverseString(hexString, strlen(hexString)); // passa como argumento a hexString que serve para conversão de inteiros em letras
-            printf("%s\n", hexStringFloat);
+            printf("Convertido para base %i: ", base2);
+            reverseString(hexString, 0, strlen(hexString) - 1);
+            sprintf(returnString, "%s = -%s.%s", number, hexString, hexStringFloat);
+            printf("%s\n", returnString);
+            return returnString;
         } else {
             printf("Convertido para base %i: ", base2);
-            reverseString(hexString, strlen(hexString)); // passa como argumento a hexString que serve para conversão de inteiros em letras
-            printf("%s\n", hexStringFloat);
+            reverseString(hexString, 0, strlen(hexString) - 1); // passa como argumento a hexString que serve para conversão de inteiros em letras
+            sprintf(returnString, "%s = %s.%s", number, hexString, hexStringFloat);
+            printf("%s\n", returnString);
+            return returnString;
         }
     }
 }
@@ -312,7 +328,8 @@ long double convertTemp(long double unidade, char* base, char* base2, long doubl
     }
 }
 
-void convert(celula* convertHisory) { // essa função irá converter as unidades utilizando a struct peso para guardar o valor já predefinido de cada unidade
+// essa função irá converter as unidades utilizando a struct peso para guardar o valor já predefinido de cada unidade
+void convert(celula* convertHistory) {
     char number[100];
     char convertNumber[100] = "0";
     char convertNumberDecimal[100] = "0";
@@ -350,13 +367,14 @@ void convert(celula* convertHisory) { // essa função irá converter as unidade
         {"lb", 453.6},
         {"oz", 28.35}
     };
+    char historyString[303];
     long double (*funcPointer[6])(long double) = {convertCF, convertCK, convertFC, convertFK, convertKC, convertKF};
-    while(validBase == 0 || validBaseDecimal == 0) { 
-        long double num = 0, num2 = 0; 
+    while(validBase == 0 || validBaseDecimal == 0) {
+        long double num = 0, num2 = 0, final; 
         printf("Digite o numero que quer converter: ");
         scanf(" %99[^\n]", number);
         findBase(number, convertNumber, convertNumberDecimal, base, base2);
-        if(convertNumber[0] == '-') { // verificação se o número digitado é negativo 
+        if(convertNumber[0] == '-') { // verificação se o número digitado é negativo
             negative = 1;
             for(int i = 0; i < 99; i++) {
                 convertNumber[i] = convertNumber[i + 1]; // caso seja negativo, o numero na posição i, recebe na posição i+1
@@ -376,7 +394,8 @@ void convert(celula* convertHisory) { // essa função irá converter as unidade
                 validBaseDecimal = 0;
             }
             if(validBase == 1 && validBaseDecimal == 1) { // caso tudo esteja validado, então chama-se a função de conversão de base
-                convertBase(convertNumber, convertNumberDecimal, num, num2);
+                strcpy(historyString, convertBase(number, convertNumber, convertNumberDecimal, num, num2));
+                addToHistory(convertHistory, historyString);
             }
         } else if((base[0] >= 65 && base[0] <= 90) || (base[0] >= 97 && base[0] <= 122)) {
             baseDecConvert(convertNumber, 10, strlen(convertNumber) - 1, 0, &resp);
@@ -386,7 +405,7 @@ void convert(celula* convertHisory) { // essa função irá converter as unidade
                 resp2 *= -1;
             }
             sum = resp + resp2;
-            long double final = convertUnits(sum, base, base2, valuesC);
+            final = convertUnits(sum, base, base2, valuesC);
             if((sum != 0 && final == 0) || (sum > 0 && final < 0) || (sum < 0 && final > 0)) {
                 final = convertUnits(sum, base, base2, valuesA);
                 if((sum != 0 && final == 0) || (sum > 0 && final < 0) || (sum < 0 && final > 0)) {
@@ -401,27 +420,34 @@ void convert(celula* convertHisory) { // essa função irá converter as unidade
                                 printf("Convertido: %Lf %s\n", final, base2);
                                 validBase = 1;
                                 validBaseDecimal = 1;
+                                sprintf(historyString, "%s = %Lf", number, final);
+                                addToHistory(convertHistory, historyString);
                             }
                         }
                     } else {
-                        printf("Convertido: %Lf %s", final, base2);
+                        printf("Convertido: %Lf %s\n", final, base2);
                         validBase = 1;
                         validBaseDecimal = 1;
+                        sprintf(historyString, "%s = %Lf", number, final);
+                        addToHistory(convertHistory, historyString);
                     }
                 } else {
                     printf("Convertido: %Lf %s\n", final, base2);
                     validBase = 1;
                     validBaseDecimal = 1;
+                    sprintf(historyString, "%s = %Lf", number, final);
+                    addToHistory(convertHistory, historyString);
                 }
             } else {
                 printf("Convertido: %Lf %s\n", final, base2);
                 validBase = 1;
                 validBaseDecimal = 1;
+                sprintf(historyString, "%s = %Lf", number, final);
+                addToHistory(convertHistory, historyString);
             }
         }
     }
 }
-
 // função que irá mostrar os comandos do programa até o momento, para nortear o usúario 
 void help() {
     printf("Commandos:\n");
