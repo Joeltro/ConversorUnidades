@@ -1,26 +1,36 @@
 #include "func.h"
 
-long double exponencial(long double a, int b) {
-    if(b == 0) {
+long double exponencial(long double a, int b) { // função recursiva que calcula a exponencial de um número a com expoente b
+    if(b == 0) {// se o expoente é igual a 0, retorna um numero 1
         return 1;
-    } else if(b == 1) {
+    } else if(b == 1) { // se o expoente é igual a 1, retorna o próprio número  
         return a;
-    } else if(b == -1) {
+    } else if(b == -1) { // se o expoente é igual a -1, retorna o número inverso
         return 1/a;
-    } else if(b > 0) {
-        return a * exponencial(a, b - 1);
+    } else if(b > 0) { // se o expoente é maior que 0 chama-se o número multiplicado por ele mesmo e passando expoente -  1
+        return a * exponencial(a, b - 1); 
     } else {
-        return 1/a * exponencial(a, b + 1);
+        return 1/a * exponencial(a, b + 1); // se não, chama o inverso do número passando ele multiplicando pelo expoente até o expoente chegar a 0
     }
 }
+FILE* initializeFiles(const char* nome, const char* modo) { // função que irá inicializar os arquivos
+    FILE* f = fopen(nome, modo);
+    
+    if (f == NULL) {
+        printf("Erro ao abrir o arquivo %s.\n", nome);
+        exit(1); // encerra o programa se falhar
+    }
 
-void viewHistory(celula* cel, int count) {
-    if(cel->prox == NULL) {
+    return f; 
+}
+
+void viewHistory(celula* cel, int count) { // função de visualização da lista do histórico de comandos
+    if(cel->prox == NULL) { // verificação se a lista está vazia
         printf("Lista vazia\n");
-    } else if((cel->prox)->prox == NULL) {
+    } else if((cel->prox)->prox == NULL) { // se o cel que aponta para o proximo que aponta para o proximo for NULL, printa a lista
         printf("%i - %s\n", count, cel->command);
     } else {
-        printf("%i - %s\n", count, cel->command);
+        printf("%i - %s\n", count, cel->command); // se não for null, ele vai printando a lista e chamando a função recursivamente
         viewHistory(cel->prox, count + 1);
     }
 }
@@ -135,7 +145,7 @@ void baseHexConvert(int base, int count, char* resp, long long n) {
     } 
 }
 
-void baseHexConvertFloat(int base, char* resp, long double n) {
+void baseHexConvertFloat(int base, char* resp, long double n) {// função de conversão de bases hexadecimais com números com pontos flutuantes
     int count = 0;
     for(int i = 0; i < 99 && ((n - (long long)n < 0.999) || count == 0) && n != 0; i++) {
         n *= base;
@@ -168,7 +178,7 @@ void baseHexConvertFloat(int base, char* resp, long double n) {
 }
 
 
-int confirmValidNum(char* array, long double num) {
+int confirmValidNum(char* array, long double num) { // verificação se o número é valido para a base selecionada
     for(int i = 0; i < 100 && array[i] != 0; i++) {
         if((*(array + i) >= 48) && (*(array + i) <= 57) && *(array + i) - '0' >= num) {
             printf("Numero invalido para base selecionada\n");
@@ -200,7 +210,7 @@ void addToConvertHistory(char* dest, char* src1, int base2) {
     
 }
 
-typedef struct weight {
+typedef struct weight { // struct para conversão de unidades
     char* name;
     long double weight;
 } peso;
@@ -244,16 +254,16 @@ void convertBase(char* convertNumber, char* convertNumberDecimal, int base, int 
     }
 }
 
-long double convertUnits(long double unidade,  char* base, char* base2, peso* values) {
+long double convertUnits(long double unidade,  char* base, char* base2, peso* values) { // função que utiliza da struct para converter as unidades do programa
     long double n = 0, n2 = -1;
     for(int i = 0; i < 7; i++) {
-        if(!strcmp(base, (values + i)->name)) {
-            n = (values + i)->weight;
+        if(!strcmp(base, (values + i)->name)) { // verifica se base(base inicial) e values são iguais, se forem diferentes executa a função
+            n = (values + i)->weight; // então o long Double recebe o valor que aponta para a unidade de medida
         } else if(!strcmp(base2, (values + i)->name)) {
             n2 = (values + i)->weight;
         }
     }
-    return unidade * (n/n2);
+    return unidade * (n/n2); 
 }
 
 long double convertCF(long double unidade) {
@@ -280,10 +290,10 @@ long double convertKF(long double unidade) {
     return unidade = 9 * (unidade - 273)/5 + 32 ; // converter Kelvin para Fahrenheit
 }
 
-long double convertTemp(long double unidade, char* base, char* base2, long double (*funcPointer[6])(long double)) {
-    if(!strcmp(base, "C")) {
-        if(!strcmp(base2, "F")) {
-            return funcPointer[0](unidade);
+long double convertTemp(long double unidade, char* base, char* base2, long double (*funcPointer[6])(long double)) { // função que utiliza de ponteiro para função para conversão de temperaturas
+    if(!strcmp(base, "C")) { // compara se a base inicial é igual a celsius
+        if(!strcmp(base2, "F")) { // compara se a base final é igual fahrenheit
+            return funcPointer[0](unidade); // a depender da igualdade, chama o ponteiro para função passando o "caso"
         } else if(!strcmp(base2, "K")) {
             return funcPointer[1](unidade);
         }
@@ -302,14 +312,14 @@ long double convertTemp(long double unidade, char* base, char* base2, long doubl
     }
 }
 
-void convert(celula* convertHisory) {
+void convert(celula* convertHisory) { // essa função irá converter as unidades utilizando a struct peso para guardar o valor já predefinido de cada unidade
     char number[100];
     char convertNumber[100] = "0";
     char convertNumberDecimal[100] = "0";
     char base[5] = "0", base2[5] = "0";
     int validBase = 0, validBaseDecimal = 0, negative = 0;
     long double resp = 0, resp2 = 0, sum;
-    peso valuesC[] = {
+    peso valuesC[] = { // esse array guarda os valores predefinidos de unidades de medida
         {"mm", 0.001},
         {"cm", 0.01},
         {"m", 1},
@@ -318,7 +328,7 @@ void convert(celula* convertHisory) {
         {"ft", 0.3048},
         {"mi", 1609.34},
     };
-    peso valuesA[] = {
+    peso valuesA[] = { // unidades de area
         {"m^2", 1},
         {"cm^2", 0.0001},
         {"ac", 4045.8564},
@@ -326,14 +336,14 @@ void convert(celula* convertHisory) {
         {"ft^2", 0.0929},
         {"in^2", 0.0006451}
     };
-    peso valuesV[] = {
+    peso valuesV[] = { // unidades de volume
         {"L", 1},
         {"mL", 0.001},
         {"m^3", 1000},
         {"in^3", 0.01638},
         {"ft^3", 28.3168}
     };
-    peso valuesM[] = {
+    peso valuesM[] = { // unidades de massa
         {"g", 1},
         {"kg", 1000},
         {"t", 1000000},
@@ -341,31 +351,31 @@ void convert(celula* convertHisory) {
         {"oz", 28.35}
     };
     long double (*funcPointer[6])(long double) = {convertCF, convertCK, convertFC, convertFK, convertKC, convertKF};
-    while(validBase == 0 || validBaseDecimal == 0) {
+    while(validBase == 0 || validBaseDecimal == 0) { 
         long double num = 0, num2 = 0; 
         printf("Digite o numero que quer converter: ");
         scanf(" %99[^\n]", number);
         findBase(number, convertNumber, convertNumberDecimal, base, base2);
-        if(convertNumber[0] == '-') {
+        if(convertNumber[0] == '-') { // verificação se o número digitado é negativo 
             negative = 1;
             for(int i = 0; i < 99; i++) {
-                convertNumber[i] = convertNumber[i + 1];
+                convertNumber[i] = convertNumber[i + 1]; // caso seja negativo, o numero na posição i, recebe na posição i+1
             }
             convertNumber[99] = 0;
         }
         if(base[0] >= 48 && base[0] <= 57) {
-            baseDecConvert(base, 10, strlen(base) - 1, 0, &num);
+            baseDecConvert(base, 10, strlen(base) - 1, 0, &num); // caso a base esteja naquele intervalo, essa função irá ficar chamando a função de conversão de base para poder validar
             baseDecConvert(base2, 10, strlen(base2) - 1, 0, &num2);
-            validBase = confirmValidNum(convertNumber, num);
+            validBase = confirmValidNum(convertNumber, num); // quando chamado a baseDecConvertm agora então a base está validada
             if(validBase == 1) {
                 validBaseDecimal = confirmValidNum(convertNumberDecimal, num);
             }
-            if(num2 < 2 || num2 > 16) {
+            if(num2 < 2 || num2 > 16) { // função que verifica se a base desejada no final do calculo está no intervalo desejado
                 printf("Base de conversao invalida\n");
                 validBase = 0;
                 validBaseDecimal = 0;
             }
-            if(validBase == 1 && validBaseDecimal == 1) {
+            if(validBase == 1 && validBaseDecimal == 1) { // caso tudo esteja validado, então chama-se a função de conversão de base
                 convertBase(convertNumber, convertNumberDecimal, num, num2);
             }
         } else if((base[0] >= 65 && base[0] <= 90) || (base[0] >= 97 && base[0] <= 122)) {
@@ -490,3 +500,10 @@ void runtime() { // função "principal" da func.c, o qual o programa irá come�
         checkInput(input, commandHistory, convertHistory);
     }
 }
+
+/*
+ FILE* arquivo = initializeFile("dados.txt", "w+");  
+    fprintf(arquivo, "Arquivo criado com sucesso!\n");
+    
+    fclose(arquivo);
+    return 0;*/
