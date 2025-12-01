@@ -1,5 +1,21 @@
 #include "func.h"
 
+void addToList(celula* cel) {
+    celula* a = malloc(sizeof(celula));
+    a->ant = cel;
+    a->prox = cel->prox;
+    cel->prox = a;
+}
+
+void addToHistory(celula* cel, char* input) {
+    if(cel->prox == NULL) {
+        strcpy(cel->command, input);
+        addToList(cel);
+    } else {
+        addToHistory(cel->prox, input);
+    }
+}
+
 long double exponencial(long double a, int b) { // função recursiva que calcula a exponencial de um número a com expoente b
     if(b == 0) {// se o expoente é igual a 0, retorna um numero 1
         return 1;
@@ -487,22 +503,6 @@ void checkInput(char* input, celula* commandHistory, celula* convertHistory) { /
         viewHistory(convertHistory, 1);
     } else if(strcmp(input, "q")) {
         printf("Comando nao reconhecido\n"); // caso seja qualquer outro comando diferente de q e dos comandos acima, cai no caso de comando não reconhecido
-    }
-}
-
-void addToList(celula* cel) {
-    celula* a = malloc(sizeof(celula));
-    a->ant = cel;
-    a->prox = cel->prox;
-    cel->prox = a;
-}
-
-void addToHistory(celula* cel, char* input) {
-    if(cel->prox == NULL) {
-        strcpy(cel->command, input);
-        addToList(cel);
-    } else {
-        addToHistory(cel->prox, input);
     }
 }
 
