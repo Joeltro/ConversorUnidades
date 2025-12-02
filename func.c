@@ -2,17 +2,18 @@
 
 void addToList(celula* cel) {
     celula* a = malloc(sizeof(celula));
-    a->ant = cel;
+    a->command = NULL;
     a->prox = cel->prox;
     cel->prox = a;
 }
 
-void addToHistory(celula* cel, char* input) {
+void addToHistory(celula* cel, char* input, int count) {
     if(cel->prox == NULL) {
-        strcpy(cel->command, input);
+        cel->command = malloc((snprintf(NULL, 0, "%i. %s", count, input) + 1) * sizeof(char));
+        sprintf(cel->command, "%i. %s", count, input);
         addToList(cel);
     } else {
-        addToHistory(cel->prox, input);
+        addToHistory(cel->prox, input, count + 1);
     }
 }
 
@@ -30,25 +31,14 @@ long double exponencial(long double a, int b) { // função recursiva que calcul
     }
 }
 
-FILE* initializeFiles(const char* nome, const char* modo) { // função que irá inicializar os arquivos
-    FILE* f = fopen(nome, modo);
-    
-    if (f == NULL) {
-        printf("Erro ao abrir o arquivo %s.\n", nome);
-        exit(1); // encerra o programa se falhar
-    }
-
-    return f; 
-}
-
-void viewHistory(celula* cel, int count) { // função de visualização da lista do histórico de comandos
+void viewHistory(celula* cel) { // função de visualização da lista do histórico de comandos
     if(cel->prox == NULL) { // verificação se a lista está vazia
         printf("Lista vazia\n");
     } else if((cel->prox)->prox == NULL) { // se o cel que aponta para o proximo que aponta para o proximo for NULL, printa a lista
-        printf("%i - %s\n", count, cel->command);
+        printf("%s\n", cel->command);
     } else {
-        printf("%i - %s\n", count, cel->command); // se não for null, ele vai printando a lista e chamando a função recursivamente
-        viewHistory(cel->prox, count + 1);
+        printf("%s\n", cel->command); // se não for null, ele vai printando a lista e chamando a função recursivamente
+        viewHistory(cel->prox);
     }
 }
 
@@ -240,7 +230,7 @@ char* convertBase(char* number, char* convertNumber, char* convertNumberDecimal,
     long double resp = 0, resp2 = 0;
     char hexString[100] = "0";
     char hexStringFloat[100] = "0";
-    char* returnString = malloc(303 * sizeof(char));
+    char* returnString = NULL;
     if(convertNumber[0] == '-') {
         negative = 1;
         for(int i = 0; i < 99; i++) {
@@ -258,10 +248,12 @@ char* convertBase(char* number, char* convertNumber, char* convertNumberDecimal,
         reverseString(hexString, 0, strlen(hexString) - 1);
         if(negative) {
             printf("Convertido para base 10: -%Lf\n", resp + resp2);
+            returnString = malloc((snprintf(NULL, 0, "%s = -%s.%s", number, hexString, hexStringFloat) + 1) * sizeof(char));
             sprintf(returnString, "%s = -%s.%s", number, hexString, hexStringFloat);
             return returnString;
         } else {
             printf("Convertido para base 10: %Lf\n", resp + resp2);
+            returnString = malloc((snprintf(NULL, 0, "%s = -%s.%s", number, hexString, hexStringFloat) + 1) * sizeof(char));
             sprintf(returnString, "%s = %s.%s", number, hexString, hexStringFloat);
             return returnString;
         }
@@ -273,14 +265,16 @@ char* convertBase(char* number, char* convertNumber, char* convertNumberDecimal,
         if(negative) {
             printf("Convertido para base %i: ", base2);
             reverseString(hexString, 0, strlen(hexString) - 1);
+            printf("%s.%s\n", hexString, hexStringFloat);
+            returnString = malloc((snprintf(NULL, 0, "%s = -%s.%s", number, hexString, hexStringFloat) + 1) * sizeof(char));
             sprintf(returnString, "%s = -%s.%s", number, hexString, hexStringFloat);
-            printf("%s\n", returnString);
             return returnString;
         } else {
             printf("Convertido para base %i: ", base2);
             reverseString(hexString, 0, strlen(hexString) - 1); // passa como argumento a hexString que serve para conversão de inteiros em letras
+            printf("%s.%s\n", hexString, hexStringFloat);
+            returnString = malloc((snprintf(NULL, 0, "%s = -%s.%s", number, hexString, hexStringFloat) + 1) * sizeof(char));
             sprintf(returnString, "%s = %s.%s", number, hexString, hexStringFloat);
-            printf("%s\n", returnString);
             return returnString;
         }
     }
@@ -338,7 +332,7 @@ long double convertTemp(long double unidade, char* base, char* base2, long doubl
     } else if(!strcmp(base, "K")) {
         if(!strcmp(base2, "C")) {
             return funcPointer[4](unidade);
-        } else if(!strcmp(base2, "K")) {
+        } else if(!strcmp(base2, "F")) {
             return funcPointer[5](unidade);
         }
     }
@@ -383,9 +377,10 @@ void convert(celula* convertHistory) {
         {"lb", 453.6},
         {"oz", 28.35}
     };
-    char historyString[303];
+    char* historyString = NULL;
     long double (*funcPointer[6])(long double) = {convertCF, convertCK, convertFC, convertFK, convertKC, convertKF};
     while(validBase == 0 || validBaseDecimal == 0) {
+        negative = 0;
         long double num = 0, num2 = 0, final; 
         printf("Digite o numero que quer converter: ");
         scanf(" %99[^\n]", number);
@@ -410,8 +405,10 @@ void convert(celula* convertHistory) {
                 validBaseDecimal = 0;
             }
             if(validBase == 1 && validBaseDecimal == 1) { // caso tudo esteja validado, então chama-se a função de conversão de base
-                strcpy(historyString, convertBase(number, convertNumber, convertNumberDecimal, num, num2));
-                addToHistory(convertHistory, historyString);
+                historyString = convertBase(number, convertNumber, convertNumberDecimal, num, num2);
+                addToHistory(convertHistory, historyString, 1);
+                free(historyString);
+                historyString = NULL;
             }
         } else if((base[0] >= 65 && base[0] <= 90) || (base[0] >= 97 && base[0] <= 122)) {
             baseDecConvert(convertNumber, 10, strlen(convertNumber) - 1, 0, &resp);
@@ -436,34 +433,47 @@ void convert(celula* convertHistory) {
                                 printf("Convertido: %Lf %s\n", final, base2);
                                 validBase = 1;
                                 validBaseDecimal = 1;
+                                historyString = malloc((snprintf(NULL, 0, "%s = %Lf", number, final) + 1) * sizeof(char));
                                 sprintf(historyString, "%s = %Lf", number, final);
-                                addToHistory(convertHistory, historyString);
+                                addToHistory(convertHistory, historyString, 1);
+                                free(historyString);
+                                historyString = NULL;
                             }
                         }
                     } else {
                         printf("Convertido: %Lf %s\n", final, base2);
                         validBase = 1;
                         validBaseDecimal = 1;
+                        historyString = malloc((snprintf(NULL, 0, "%s = %Lf", number, final) + 1) * sizeof(char));
                         sprintf(historyString, "%s = %Lf", number, final);
-                        addToHistory(convertHistory, historyString);
+                        addToHistory(convertHistory, historyString, 1);
+                        free(historyString);
+                        historyString = NULL;
                     }
                 } else {
                     printf("Convertido: %Lf %s\n", final, base2);
                     validBase = 1;
                     validBaseDecimal = 1;
+                    historyString = malloc((snprintf(NULL, 0, "%s = %Lf", number, final) + 1) * sizeof(char));
                     sprintf(historyString, "%s = %Lf", number, final);
-                    addToHistory(convertHistory, historyString);
+                    addToHistory(convertHistory, historyString, 1);
+                    free(historyString);
+                    historyString = NULL;
                 }
             } else {
                 printf("Convertido: %Lf %s\n", final, base2);
                 validBase = 1;
                 validBaseDecimal = 1;
+                historyString = malloc((snprintf(NULL, 0, "%s = %Lf", number, final) + 1) * sizeof(char));
                 sprintf(historyString, "%s = %Lf", number, final);
-                addToHistory(convertHistory, historyString);
+                addToHistory(convertHistory, historyString, 1);
+                free(historyString);
+                historyString = NULL;
             }
         }
     }
 }
+
 // função que irá mostrar os comandos do programa até o momento, para nortear o usúario 
 void help() {
     printf("Commandos:\n");
@@ -480,8 +490,8 @@ void helpConvert() {
     printf("> Numeros de 2 ate 16\n");
     printf("> Comprimentos: milimetros = mm, centimetros = cm, metros = m, kilometros = km, polegadas = in, pes = ft, milhas = mi\n");
     printf("> Area: centimetros quadrados = cm^2, metros quadrados = m^2, acres = ac, hectares = ha, pes quadrados = ft^2, polegadas quadradas = in^2\n");
-    printf("> Volume: litros = L, mililitros = mL, metros cubicos = m^3, polegadas cubicas = in^3, pes cubicos = ft^3");
-    printf("> Massa: gramas = g, kilogramas = kg, tonelada = t, libra = lb, onca = oz");
+    printf("> Volume: litros = L, mililitros = mL, metros cubicos = m^3, polegadas cubicas = in^3, pes cubicos = ft^3\n");
+    printf("> Massa: gramas = g, kilogramas = kg, tonelada = t, libra = lb, onca = oz\n");
     printf("> Temperatura: Celcius = C, Fahreinheit = F, Kelvin = K\n");
 }
 
@@ -498,38 +508,97 @@ void checkInput(char* input, celula* commandHistory, celula* convertHistory) { /
         //helpOp();
     } else if(!strcmp(input, "hist")) {
         printf("\n=== Historico de commandos ===\n");
-        viewHistory(commandHistory, 1);
+        viewHistory(commandHistory);
         printf("\n=== Historico de conversoes ===\n");
-        viewHistory(convertHistory, 1);
+        viewHistory(convertHistory);
+        printf("\n");
     } else if(strcmp(input, "q")) {
         printf("Comando nao reconhecido\n"); // caso seja qualquer outro comando diferente de q e dos comandos acima, cai no caso de comando não reconhecido
+    }
+}
+
+void writeToFile(celula* list, FILE* file) {
+    if((list->prox)->prox == NULL) {
+        fprintf(file, "%s\n", list->command);
+    } else {
+        fprintf(file, "%s\n", list->command);
+        writeToFile(list->prox, file);
+    }
+}
+
+void writeToList(celula* list, FILE* file, int count) {
+    int c = fgetc(file);
+    if(c == EOF) {
+        return;
+    } else if(c == '\n') {
+        list->command[count] = '\0';
+        addToList(list);
+        writeToList(list->prox, file, 0);
+    } else {
+        char* temp = realloc(list->command, (count + 1) * sizeof(char));
+        if(temp == NULL) {
+            printf("Erro ao alocar memoria\n");
+            return;
+        } else {
+            temp[count] = c;
+            list->command = temp;
+        }
+        writeToList(list, file, count + 1);
+    }
+}
+
+void freeList(celula* list) {
+    if(list == NULL) {
+        return;
+    } else if(list->prox == NULL) {
+        free(list->command);
+        list->command = NULL;
+        free(list);
+        list = NULL;
+    } else {
+        freeList(list->prox);
+        free(list->command);
+        list->command = NULL;
+        free(list);
+        list = NULL;
     }
 }
 
 void runtime() { // função "principal" da func.c, o qual o programa irá começar e irá rodar até receber q como input
     int start = 0;
     char input[20] = "0";
+    FILE* commands = fopen("historicoDeComandos.txt", "r");
     celula* commandHistory = malloc(sizeof(celula));
-    commandHistory->ant = NULL;
+    commandHistory->command = NULL;
     commandHistory->prox = NULL;
+    if(commands != NULL) {
+        writeToList(commandHistory, commands, 0);
+        fclose(commands);
+    }
+    FILE* conversions = fopen("historicoDeConversoes.txt", "r");
     celula* convertHistory = malloc(sizeof(celula));
-    convertHistory->ant = NULL;
+    convertHistory->command = NULL;
     convertHistory->prox = NULL;
+    if(conversions != NULL) {
+        writeToList(convertHistory, conversions, 0);
+        fclose(conversions);
+    }
     if(start == 0) {
         printf("=== Conversor de unidades ===\n");
         printf("Digite 'help' para ver commandos\n");
         start = 1;
     }
     while(strcmp(input, "q") != 0) { // logica de rodar até o programa receber q como input
-        scanf(" %[^\n]s", input);
-        addToHistory(commandHistory, input);
+        scanf(" %19[^\n]", input);
+        addToHistory(commandHistory, input, 1);
         checkInput(input, commandHistory, convertHistory);
     }
+    commands = fopen("historicoDeComandos.txt", "w+");
+    writeToFile(commandHistory, commands);
+    fclose(commands);
+    conversions = fopen("historicoDeConversoes.txt", "w+");
+    writeToFile(convertHistory, conversions);
+    fclose(conversions);
+    freeList(commandHistory);
+    freeList(convertHistory);
 }
-
-/*
- FILE* arquivo = initializeFile("dados.txt", "w+");  
-    fprintf(arquivo, "Arquivo criado com sucesso!\n");
-    
-    fclose(arquivo);
-    return 0;*/
