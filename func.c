@@ -534,6 +534,9 @@ void checkInput(char* input, celula* commandHistory, celula* convertHistory) { /
 }
 
 void writeToFile(celula* list, FILE* file) {
+    if(list->prox == NULL) {
+        return;
+    }
     if((list->prox)->prox == NULL) {
         fprintf(file, "%s\n", list->command);
     } else {
