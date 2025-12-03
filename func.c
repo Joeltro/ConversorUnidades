@@ -1,5 +1,11 @@
 #include "func.h"
 
+void initString(char* string, int size) {
+    for(int i = 0; i < size; i++) {
+        string[i] = 0;
+    }
+}
+
 void addToList(celula* cel) {
     celula* a = malloc(sizeof(celula));
     a->command = NULL;
@@ -281,7 +287,7 @@ char* convertBase(char* number, char* convertNumber, char* convertNumberDecimal,
 }
 
 long double convertUnits(long double unidade,  char* base, char* base2, peso* values) { // função que utiliza da struct para converter as unidades do programa
-    long double n = 0, n2 = -1;
+    long double n = 0, n2 = 0;
     for(int i = 0; i < 7; i++) {
         if(!strcmp(base, (values + i)->name)) { // verifica se base(base inicial) e values são iguais, se forem diferentes executa a função
             n = (values + i)->weight; // então o long Double recebe o valor que aponta para a unidade de medida
@@ -289,7 +295,11 @@ long double convertUnits(long double unidade,  char* base, char* base2, peso* va
             n2 = (values + i)->weight;
         }
     }
-    return unidade * (n/n2); 
+    if(n != 0 && n2 != 0) {
+        return unidade * (n/n2); 
+    } else {
+        return -unidade;
+    }
 }
 
 long double convertCF(long double unidade) {
@@ -322,20 +332,27 @@ long double convertTemp(long double unidade, char* base, char* base2, long doubl
             return funcPointer[0](unidade); // a depender da igualdade, chama o ponteiro para função passando o "caso"
         } else if(!strcmp(base2, "K")) {
             return funcPointer[1](unidade);
+        } else if(!strcmp(base2, "C")) {
+            return unidade;
         }
     } else if(!strcmp(base, "F")) {
         if(!strcmp(base2, "C")) {
             return funcPointer[2](unidade);
         } else if(!strcmp(base2, "K")) {
             return funcPointer[3](unidade);
+        } else if(!strcmp(base2, "F")) {
+            return unidade;
         }
     } else if(!strcmp(base, "K")) {
         if(!strcmp(base2, "C")) {
             return funcPointer[4](unidade);
         } else if(!strcmp(base2, "F")) {
             return funcPointer[5](unidade);
+        } else if(!strcmp(base2, "K")) {
+            return unidade;
         }
     }
+    return -unidade;
 }
 
 // essa função irá converter as unidades utilizando a struct peso para guardar o valor já predefinido de cada unidade
@@ -345,7 +362,6 @@ void convert(celula* convertHistory) {
     char convertNumberDecimal[100] = "0";
     char base[5] = "0", base2[5] = "0";
     int validBase = 0, validBaseDecimal = 0, negative = 0;
-    long double resp = 0, resp2 = 0, sum;
     peso valuesC[] = { // esse array guarda os valores predefinidos de unidades de medida
         {"mm", 0.001},
         {"cm", 0.01},
@@ -381,7 +397,7 @@ void convert(celula* convertHistory) {
     long double (*funcPointer[6])(long double) = {convertCF, convertCK, convertFC, convertFK, convertKC, convertKF};
     while(validBase == 0 || validBaseDecimal == 0) {
         negative = 0;
-        long double num = 0, num2 = 0, final; 
+        long double resp = 0, resp2 = 0, sum = 0, num = 0, num2 = 0, final; 
         printf("Digite o numero que quer converter: ");
         scanf(" %99[^\n]", number);
         findBase(number, convertNumber, convertNumberDecimal, base, base2);
@@ -418,16 +434,16 @@ void convert(celula* convertHistory) {
                 resp2 *= -1;
             }
             sum = resp + resp2;
-            final = convertUnits(sum, base, base2, valuesC);
-            if((sum != 0 && final == 0) || (sum > 0 && final < 0) || (sum < 0 && final > 0)) {
-                final = convertUnits(sum, base, base2, valuesA);
-                if((sum != 0 && final == 0) || (sum > 0 && final < 0) || (sum < 0 && final > 0)) {
-                    final = convertUnits(sum, base, base2, valuesV);
-                    if((sum != 0 && final == 0) || (sum > 0 && final < 0) || (sum < 0 && final > 0)) {
-                        final = convertUnits(sum, base, base2, valuesM);
-                        if((sum != 0 && final == 0) || (sum > 0 && final < 0) || (sum < 0 && final > 0)) {
-                            final = convertTemp(sum, base, base2, funcPointer);
-                            if((sum > 0 && final < 0) || (sum < 0 && final > 0)) {
+            final = convertTemp(sum, base, base2, funcPointer);
+            if(final == -sum) {
+                final = convertUnits(sum, base, base2, valuesC);
+                if(final == -sum) {
+                    final = convertUnits(sum, base, base2, valuesA);
+                    if(final == -sum) {
+                        final = convertUnits(sum, base, base2, valuesV);
+                        if(final == -sum) {
+                            final = convertUnits(sum, base, base2, valuesM);
+                            if(final == -sum) {
                                 printf("Base invalida\n");
                             } else {
                                 printf("Convertido: %Lf %s\n", final, base2);
@@ -531,7 +547,14 @@ void writeToList(celula* list, FILE* file, int count) {
     if(c == EOF) {
         return;
     } else if(c == '\n') {
-        list->command[count] = '\0';
+        char* temp = realloc(list->command, (count + 1) * sizeof(char));
+        if(temp == NULL) {
+            printf("Erro ao alocar memoria\n");
+            return;
+        } else {
+            list->command = temp;
+            list->command[count] = 0;
+        }
         addToList(list);
         writeToList(list->prox, file, 0);
     } else {
@@ -540,8 +563,8 @@ void writeToList(celula* list, FILE* file, int count) {
             printf("Erro ao alocar memoria\n");
             return;
         } else {
-            temp[count] = c;
             list->command = temp;
+            list->command[count] = c;
         }
         writeToList(list, file, count + 1);
     }
