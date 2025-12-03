@@ -1,9 +1,9 @@
 /**
  * @file main.c
  * @brief Ponto de entrada do programa de conversão de unidades.
- * 
- * Conversor de unidades  
- * Dupla: Alisson e Joeltro  
+ *
+ * Conversor de unidades 
+ * Dupla: Alisson e Joeltro
  * Data da última modificação: 03/12/2025
  */
 
@@ -12,9 +12,9 @@
 /**
  * @brief Função principal do programa.
  * 
- * Inicializa o sistema chamando runtime().
+ * Chama a função runtime(), que executa todo o sistema de conversões e histórico.
  * 
- * @return 0 ao finalizar o programa.
+ * @return Retorna 0 ao finalizar.
  */
 int main(void) {
     runtime();

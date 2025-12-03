@@ -13,17 +13,17 @@
  * @brief Nó da lista encadeada utilizada para armazenar histórico de comandos.
  * 
  * @var celula::command
- * Texto do comando armazenado na célula.
+ * Comando digitado pelo usuário.
  * 
  * @var celula::prox
  * Ponteiro para a próxima célula da lista.
  */
-typedef struct celula { 
-    char* command; 
-    struct celula* prox; 
+typedef struct celula { // struct que será utilizada para fazer a lista do programa
+    char* command; // são os comandos digitados pelo usúario
+    struct celula* prox; // ponteiro que irá apontar para o próximo
 } celula;
 
 /**
- * @brief Função principal responsável por executar o loop de comandos do programa.
+ * @brief Inicia o loop principal do programa, gerenciando entrada, histórico e conversões.
  */
 void runtime();
