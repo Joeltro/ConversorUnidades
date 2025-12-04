@@ -6,17 +6,6 @@
 #include "func.h"
 
 /**
- * @brief Inicializa uma string preenchendo seus caracteres com 0.
- * @param string Ponteiro para a string.
- * @param size Tamanho da string.
- */
-void initString(char* string, int size) {
-    for(int i = 0; i < size; i++) {
-        string[i] = 0;
-    }
-}
-
-/**
  * @brief Adiciona uma nova célula vazia após a célula fornecida.
  * @param cel Ponteiro para a célula atual.
  */
@@ -343,19 +332,12 @@ typedef struct weight { // struct para conversão de unidades
  * @param base2 Base destino.
  * @return char* String alocada contendo a conversão no formato "original = convertido". Deve ser liberada pelo chamador.
  */
-char* convertBase(char* number, char* convertNumber, char* convertNumberDecimal, int base, int base2) { // função que irá ler os números e a as bases
-    int power = 0, negative = 0; 
+char* convertBase(char* number, char* convertNumber, char* convertNumberDecimal, int base, int base2, int negative) { // função que irá ler os números e a as bases
+    int power = 0;
     long double resp = 0, resp2 = 0;
     char hexString[100] = "0";
     char hexStringFloat[100] = "0";
     char* returnString = NULL;
-    if(convertNumber[0] == '-') {
-        negative = 1;
-        for(int i = 0; i < 99; i++) {
-            convertNumber[i] = convertNumber[i + 1];
-        }
-        convertNumber[99] = 0;
-    }
     int count = strlen(convertNumber) - 1;
     int count2 = strlen(convertNumberDecimal) - 1;
     if(base2 == 10) { // logica de conversão para base 10
@@ -371,7 +353,7 @@ char* convertBase(char* number, char* convertNumber, char* convertNumberDecimal,
             return returnString;
         } else {
             printf("Convertido para base 10: %Lf\n", resp + resp2);
-            returnString = malloc((snprintf(NULL, 0, "%s = -%s.%s", number, hexString, hexStringFloat) + 1) * sizeof(char));
+            returnString = malloc((snprintf(NULL, 0, "%s = %s.%s", number, hexString, hexStringFloat) + 1) * sizeof(char));
             sprintf(returnString, "%s = %s.%s", number, hexString, hexStringFloat);
             return returnString;
         }
@@ -381,7 +363,7 @@ char* convertBase(char* number, char* convertNumber, char* convertNumberDecimal,
         baseHexConvert(base2, 0, hexString, resp);
         baseHexConvertFloat(base2, hexStringFloat, resp2);
         if(negative) {
-            printf("Convertido para base %i: ", base2);
+            printf("Convertido para base %i: -", base2);
             reverseString(hexString, 0, strlen(hexString) - 1);
             printf("%s.%s\n", hexString, hexStringFloat);
             returnString = malloc((snprintf(NULL, 0, "%s = -%s.%s", number, hexString, hexStringFloat) + 1) * sizeof(char));
@@ -391,7 +373,7 @@ char* convertBase(char* number, char* convertNumber, char* convertNumberDecimal,
             printf("Convertido para base %i: ", base2);
             reverseString(hexString, 0, strlen(hexString) - 1); // passa como argumento a hexString que serve para conversão de inteiros em letras
             printf("%s.%s\n", hexString, hexStringFloat);
-            returnString = malloc((snprintf(NULL, 0, "%s = -%s.%s", number, hexString, hexStringFloat) + 1) * sizeof(char));
+            returnString = malloc((snprintf(NULL, 0, "%s = %s.%s", number, hexString, hexStringFloat) + 1) * sizeof(char));
             sprintf(returnString, "%s = %s.%s", number, hexString, hexStringFloat);
             return returnString;
         }
@@ -589,7 +571,7 @@ void convert(celula* convertHistory) {
                 validBaseDecimal = 0;
             }
             if(validBase == 1 && validBaseDecimal == 1) { // caso tudo esteja validado, então chama-se a função de conversão de base
-                historyString = convertBase(number, convertNumber, convertNumberDecimal, num, num2);
+                historyString = convertBase(number, convertNumber, convertNumberDecimal, num, num2, negative);
                 addToHistory(convertHistory, historyString, 1);
                 free(historyString);
                 historyString = NULL;
@@ -623,6 +605,15 @@ void convert(celula* convertHistory) {
                                 free(historyString);
                                 historyString = NULL;
                             }
+                        } else {
+                            printf("Convertido: %Lf %s\n", final, base2);
+                            validBase = 1;
+                            validBaseDecimal = 1;
+                            historyString = malloc((snprintf(NULL, 0, "%s = %Lf", number, final) + 1) * sizeof(char));
+                            sprintf(historyString, "%s = %Lf", number, final);
+                            addToHistory(convertHistory, historyString, 1);
+                            free(historyString);
+                            historyString = NULL;
                         }
                     } else {
                         printf("Convertido: %Lf %s\n", final, base2);
