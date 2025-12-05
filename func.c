@@ -654,7 +654,7 @@ void convert(celula* convertHistory) {
  */
 void help() {
     printf("Commandos:\n");
-    printf("convert temp -- Realiza conversao de unidades e bases\n");
+    printf("convert -- Realiza conversao de unidades e bases\n");
     //printf("op -- Realiza operacoes entre unidades diferentes\n");
     printf("q -- Sai do programa\n");
     printf("Digite 'help -commando-' para ver parametros avancados\n");
