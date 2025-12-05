@@ -531,7 +531,7 @@ void convert(celula* convertHistory) {
     };
     peso valuesV[] = { // unidades de volume
         {"L", 1},
-        {"mL", 0.001},
+        {"ml", 0.001},
         {"m^3", 1000},
         {"in^3", 0.01638},
         {"ft^3", 28.3168}
@@ -669,7 +669,7 @@ void helpConvert() {
     printf("> Numeros de 2 ate 16\n");
     printf("> Comprimentos: milimetros = mm, centimetros = cm, metros = m, kilometros = km, polegadas = in, pes = ft, milhas = mi\n");
     printf("> Area: centimetros quadrados = cm^2, metros quadrados = m^2, acres = ac, hectares = ha, pes quadrados = ft^2, polegadas quadradas = in^2\n");
-    printf("> Volume: litros = L, mililitros = mL, metros cubicos = m^3, polegadas cubicas = in^3, pes cubicos = ft^3\n");
+    printf("> Volume: litros = L, mililitros = ml, metros cubicos = m^3, polegadas cubicas = in^3, pes cubicos = ft^3\n");
     printf("> Massa: gramas = g, kilogramas = kg, tonelada = t, libra = lb, onca = oz\n");
     printf("> Temperatura: Celcius = C, Fahreinheit = F, Kelvin = K\n");
 }
