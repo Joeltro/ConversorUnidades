@@ -658,7 +658,7 @@ void help() {
     printf("hist -- Mostra historico de comandos e historico de conversao\n");
     //printf("op -- Realiza operacoes entre unidades diferentes\n");
     printf("q -- Sai do programa\n");
-    printf("Digite ' -commando-' para ver parametros avancados\n");
+    printf("Digite 'help convert' para ver formato de uso\n");
 }
 
 /**
