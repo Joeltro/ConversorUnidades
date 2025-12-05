@@ -652,7 +652,7 @@ void convert(celula* convertHistory) {
 /**
  * @brief Mostra comandos disponíveis ao usuário.
  */
-void () {
+void help() {
     printf("Commandos:\n");
     printf("convert -- Realiza conversao de unidades e bases\n");
     printf("hist -- Mostra historico de comandos e historico de conversao\n");
